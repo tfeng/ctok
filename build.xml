@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+
+<project name="ctok" default="default"  xmlns:ivy="antlib:org.apache.ivy.ant">
+  <property file="build.properties" />
+
+  <path id="ivy-classpath">
+    <fileset dir="${ivy.lib}">
+      <include name="**/*.jar" />
+    </fileset>
+    <pathelement path="${classes.dir}" />
+  </path>
+
+  <path id="main-classpath">
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar" />
+      <exclude name="**/*-sources.jar" />
+    </fileset>
+    <pathelement path="${classes.dir}" />
+  </path>
+
+  <target name="-init">
+    <mkdir dir="${ivy.lib}"/>
+    <condition property="ivy.jar.exists">
+      <available file="${ivy.lib}/ivy-${ivy.version}.jar"/>
+    </condition>
+  </target>
+
+  <target name="-ivy-download" unless="ivy.jar.exists" depends="-init">
+    <get src="${ivy.url}/${ivy.version}/ivy-${ivy.version}.jar"
+       dest="${ivy.lib}/ivy-${ivy.version}.jar" usetimestamp="true"/>
+  </target>
+
+  <target name="-ivy-init" depends="-ivy-download" unless="ivy.initialized">
+    <taskdef resource="org/apache/ivy/ant/antlib.xml"
+             uri="antlib:org.apache.ivy.ant" classpathref="ivy-classpath"/>
+    <ivy:configure file="ivysettings.xml" />
+    <property name="ivy.initialized" value="true"/>
+  </target>
+
+  <target name="ivy-retrieve" depends="-ivy-init">
+    <delete dir="${lib.dir}" />
+    <mkdir dir="${lib.dir}"/>
+    <ivy:resolve file="ivy.xml" conf="*" transitive="true"/>
+  </target>
+
+  <target name="build">
+    <delete dir="${classes.dir}" />
+    <mkdir dir="${classes.dir}" />
+    <javac destdir="${classes.dir}"
+           source="1.6"
+           target="1.6"
+           debug="true"
+           deprecation="false"
+           failonerror="true"
+           includeantruntime="false">
+      <src path="${java.dir}" />
+      <classpath refid="main-classpath" />
+    </javac>
+  </target>
+
+  <target name="default" depends="build">
+  </target>
+</project>

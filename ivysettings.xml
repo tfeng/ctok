@@ -1,0 +1,12 @@
+<ivysettings>
+  <settings defaultResolver="ibiblio"/>
+  <resolvers>
+    <ibiblio name="ibiblio" m2compatible="true" cache="main"/>
+  </resolvers>
+  <caches>
+    <cache name="main"
+           basedir="${basedir}/lib"
+           artifactPattern="[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+           useOrigin="false"/>
+  </caches>
+</ivysettings>

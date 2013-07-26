@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
+  <info organisation="me.tfeng" module="ctok" revision="0.1" />
+  <dependencies>
+    <dependency name="lucene-analyzers-common" org="org.apache.lucene" rev="4.3.1" conf="* -> default,sources" />
+    <dependency name="lucene-core" org="org.apache.lucene" rev="4.3.1" conf="* -> default,sources" />
+  </dependencies>
+</ivy-module>
