@@ -26,7 +26,7 @@ public class MMSegChunks {
 
   public static final int N = 3;
 
-  private final Map<Integer, Integer> maxWordCache = new HashMap<Integer, Integer>();
+  private final Map<Integer, Node> maxWordCache = new HashMap<Integer, Node>();
   private final List<Token> tokens = new ArrayList<Token>();
 
   private final Analyzer analyzer = new Analyzer() {
@@ -94,68 +94,79 @@ public class MMSegChunks {
   }
 
   private String maxNWords(int start, int n) {
-    int[] ends = new int[n];
-    MaxNResult result = new MaxNResult(n);
-    maxNWordsRec(ends, start, 0, n, result);
-    return String.valueOf(text, start, result.ends[0] - start);
+    Node[] ends = new Node[n];
+    MaxNResult result = new MaxNResult(start, n);
+    maxNWordsRec(start, ends, 0, n, result);
+    return String.valueOf(text, start, result.ends[0].wordLength());
   }
 
-  private void maxNWordsRec(int[] ends, int start, int i, int n, MaxNResult result) {
+  private void maxNWordsRec(int start, Node[] ends, int i, int n, MaxNResult result) {
     if (start == text.length) {
       for (int j = i; j < n; j++) {
-        ends[j] = 0;
+        ends[j] = null;
       }
-      setResult(ends, start, result);
+      setResult(start, ends, result);
     } else if (i == n - 1) {
-      int end = maxWord(start);
+      Node end = maxWord(start);
       ends[i] = end;
-      setResult(ends, end, result);
+      setResult(start, ends, result);
     } else {
-      Node node = dictionary.getTree();
-      int end = start + 1;
-      ends[i] = end;
-      maxNWordsRec(ends, end, i + 1, n, result);
-      for (int j = start; node != null && j < text.length; j++) {
+      Node node = dictionary.newNode(text[start]);
+      ends[i] = node;
+      maxNWordsRec(start + 1, ends, i + 1, n, result);
+      for (int j = start + 1; node != null && j < text.length; j++) {
         Node next = node.get(text[j]);
-        if (next != null && next.weight() > 0) {
-          ends[i] = j + 1;
-          maxNWordsRec(ends, j + 1, i + 1, n, result);
+        if (next != null && next.exists()) {
+          ends[i] = next;
+          maxNWordsRec(j + 1, ends, i + 1, n, result);
         }
         node = next;
       }
     }
   }
 
-  private int maxWord(int start) {
-    Integer result = maxWordCache.get(start);
+  private Node maxWord(int start) {
+    Node result = maxWordCache.get(start);
     if (result != null) {
       return result;
     }
-    Node node = dictionary.getTree();
-    int maxEnd = start + 1;
+    Node node = dictionary.newNode(text[start]);
+    Node maxNode = node;
     for (int i = start; node != null && i < text.length; i++) {
       Node next = node.get(text[i]);
-      if (next != null && next.weight() > 0) {
-        maxEnd = i + 1;
+      if (next != null && next.exists()) {
+        maxNode = node;
       }
       node = next;
     }
-    maxWordCache.put(start, maxEnd);
-    return maxEnd;
+    maxWordCache.put(start, maxNode);
+    return maxNode;
   }
 
-  private void setResult(int[] ends, int chunkEnd, MaxNResult result) {
-    if (chunkEnd > result.maxChunkEnd
-        || chunkEnd == result.maxChunkEnd && checkRules(ends, result.ends)) {
-      result.maxChunkEnd = chunkEnd;
+  private void setResult(int start, Node[] ends, MaxNResult result) {
+    int chunkLength = totalLength(ends);
+    if (chunkLength > result.maxChunkLength
+        || chunkLength == result.maxChunkLength && checkRules(start, ends, result.ends)) {
+      result.maxChunkLength = chunkLength;
       System.arraycopy(ends, 0, result.ends, 0, ends.length);
     }
   }
 
-  private boolean checkRules(int[] ends1, int[] ends2) {
+  private int totalLength(Node[] ends) {
+    int length = 0;
+    for (Node end : ends) {
+      if (end == null) {
+        break;
+      }
+      length += end.wordLength();
+    }
+    return length;
+  }
+
+  private boolean checkRules(int start, Node[] ends1, Node[] ends2) {
     if (rules != null) {
       for (Rule rule : rules) {
-        int result = rule.compare(dictionary, text, ends1, ends2);
+        int result = rule.compare(dictionary, text, start, ends1, ends2);
         if (result < 0) {
           return true;
         } else if (result > 0) {
@@ -167,11 +178,11 @@ public class MMSegChunks {
   }
 
   private class MaxNResult {
-    private int[] ends;
-    private int maxChunkEnd;
+    private Node[] ends;
+    private int maxChunkLength;
 
-    public MaxNResult(int n) {
-      ends = new int[n];
+    public MaxNResult(int start, int n) {
+      ends = new Node[n];
     }
   }
 }

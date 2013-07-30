@@ -1,26 +1,28 @@
 package me.tfeng.ctok.mmseg.rules;
 
 import me.tfeng.ctok.mmseg.MMSegDictionary;
+import me.tfeng.ctok.mmseg.MMSegDictionary.Node;
 
 public class MinVariance implements Rule {
 
   @Override
-  public int compare(MMSegDictionary dictionary, char[] text, int[] ends1, int[] ends2) {
+  public int compare(MMSegDictionary dictionary, char[] text, int start, Node[] ends1,
+      Node[] ends2) {
     return Double.compare(variance(ends1), variance(ends2));
   }
 
-  private double variance(int[] ends) {
+  private double variance(Node[] ends) {
     int words = 0;
     int maxLength = 0;
-    for (; words < ends.length && ends[words] > 0; words++);
-    maxLength = ends[words - 1];
+    for (; words < ends.length && ends[words] != null;
+        maxLength += ends[words].wordLength(), words++);
     double avgLength = (double) maxLength / words;
-    int previousEnd = 0;
     double variance2 = 0.0;
-    for (int i = 0; i < words; i++) {
-      int length = ends[i] - previousEnd;
-      previousEnd = ends[i];
-      double difference = length - avgLength;
+    for (Node end : ends) {
+      if (end == null) {
+        break;
+      }
+      double difference = end.wordLength() - avgLength;
       variance2 += difference * difference;
     }
     return variance2;

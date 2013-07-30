@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.tfeng.ctok.mmseg.rules.MaxAvgWordLength;
-import me.tfeng.ctok.mmseg.rules.MaxCharFrequency;
 import me.tfeng.ctok.mmseg.rules.MaxWordFrequency;
 import me.tfeng.ctok.mmseg.rules.MinVariance;
 import me.tfeng.ctok.mmseg.rules.Rule;
@@ -18,7 +17,6 @@ public class MMSegData {
     DEFAULT_RULES.add(new MaxWordFrequency());
     DEFAULT_RULES.add(new MaxAvgWordLength());
     DEFAULT_RULES.add(new MinVariance());
-    DEFAULT_RULES.add(new MaxCharFrequency());
   }
 
   private List<Rule> rules = DEFAULT_RULES;
