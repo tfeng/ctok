@@ -13,8 +13,7 @@ public class Part {
 
   public boolean append(int ch) {
     CharType charType = CharType.getCharType(ch);
-    if (charType == CharType.PUNCTUATION
-        || charType == CharType.WHITESPACE) {
+    if (charType == CharType.WHITESPACE) {
       return type == null;
     }
     if (isSamePart(charType)) {
